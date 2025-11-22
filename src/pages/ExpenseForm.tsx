@@ -344,11 +344,14 @@ const ExpenseForm = () => {
                     className="hidden"
                     id="file-upload"
                   />
-                  <Label htmlFor="file-upload" className="cursor-pointer">
-                    <Button type="button" variant="outline" size="sm">
-                      Choose Files
-                    </Button>
-                  </Label>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => document.getElementById('file-upload')?.click()}
+                  >
+                    Choose Files
+                  </Button>
                 </div>
 
                 {existingFiles.length > 0 && (

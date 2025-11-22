@@ -63,14 +63,22 @@ const Dashboard = () => {
 
         if (error) throw error;
 
-        // Calculate stats
+        // Calculate stats based on role
+        const pendingStatuses = primaryRole === 'manager'
+          ? ['submitted', 'reviewed']
+          : ['submitted', 'reviewed', 'manager_approved'];
+        
+        const approvedStatuses = primaryRole === 'manager' 
+          ? ['manager_approved', 'owner_approved', 'pending_payment', 'paid']
+          : ['owner_approved', 'pending_payment', 'paid'];
+
         const stats: ExpenseStats = {
           total: expenses?.length || 0,
           pending: expenses?.filter(e => 
-            ['submitted', 'reviewed', 'manager_approved'].includes(e.status)
+            pendingStatuses.includes(e.status)
           ).length || 0,
           approved: expenses?.filter(e => 
-            ['owner_approved', 'pending_payment', 'paid'].includes(e.status)
+            approvedStatuses.includes(e.status)
           ).length || 0,
           rejected: expenses?.filter(e => 
             ['manager_rejected', 'owner_rejected'].includes(e.status)
