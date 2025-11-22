@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { formatCurrency, formatDateTime } from '@/lib/utils';
@@ -29,9 +30,9 @@ const Approvals = () => {
         .order('created_at', { ascending: false });
       
       if (primaryRole === 'manager') {
-        query = query.in('status', ['submitted', 'reviewed']);
+        query = query.in('status', ['submitted', 'reviewed', 'manager_approved', 'manager_rejected']);
       } else if (primaryRole === 'owner') {
-        query = query.in('status', ['manager_approved']);
+        query = query.in('status', ['manager_approved', 'owner_approved', 'owner_rejected']);
       }
 
       const { data: expensesData, error: expensesError } = await query;
@@ -112,9 +113,24 @@ const Approvals = () => {
       submitted: 'bg-blue-500',
       reviewed: 'bg-purple-500',
       manager_approved: 'bg-green-500',
+      manager_rejected: 'bg-red-500',
+      owner_approved: 'bg-emerald-500',
+      owner_rejected: 'bg-red-600',
     };
     return colors[status] || 'bg-gray-500';
   };
+
+  const isPending = (status: string) => {
+    if (primaryRole === 'manager') {
+      return ['submitted', 'reviewed'].includes(status);
+    } else if (primaryRole === 'owner') {
+      return status === 'manager_approved';
+    }
+    return false;
+  };
+
+  const pendingExpenses = expenses?.filter(e => isPending(e.status)) || [];
+  const completedExpenses = expenses?.filter(e => !isPending(e.status)) || [];
 
   if (primaryRole !== 'manager' && primaryRole !== 'owner') {
     return (
@@ -126,117 +142,159 @@ const Approvals = () => {
     );
   }
 
+  const renderExpenseCard = (expense: any, showActions: boolean) => (
+    <Card key={expense.id}>
+      <CardHeader>
+        <div className="flex items-start justify-between">
+          <div>
+            <CardTitle>{expense.title}</CardTitle>
+            <CardDescription>
+              Submitted by {expense.profile?.full_name || 'Unknown'} • {formatDateTime(expense.created_at)}
+            </CardDescription>
+          </div>
+          <Badge className={getStatusColor(expense.status)}>
+            {expense.status.replace(/_/g, ' ')}
+          </Badge>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-2 gap-4 text-sm">
+          <div>
+            <p className="text-muted-foreground">Amount</p>
+            <p className="font-semibold text-lg">{formatCurrency(expense.amount)}</p>
+          </div>
+          <div>
+            <p className="text-muted-foreground">Category</p>
+            <p className="font-medium">{expense.category}</p>
+          </div>
+          <div>
+            <p className="text-muted-foreground">Expense Date</p>
+            <p className="font-medium">{formatDateTime(expense.expense_date)}</p>
+          </div>
+        </div>
+
+        {expense.description && (
+          <div>
+            <p className="text-sm text-muted-foreground mb-1">Description</p>
+            <p className="text-sm">{expense.description}</p>
+          </div>
+        )}
+
+        {(expense.manager_rejection_reason || expense.owner_rejection_reason) && (
+          <div className="bg-red-50 dark:bg-red-950/20 p-3 rounded-md">
+            <p className="text-sm font-medium text-red-800 dark:text-red-200 mb-1">Rejection Reason</p>
+            <p className="text-sm text-red-700 dark:text-red-300">
+              {expense.manager_rejection_reason || expense.owner_rejection_reason}
+            </p>
+          </div>
+        )}
+
+        {showActions && (
+          selectedExpense === expense.id ? (
+            <div className="space-y-3 pt-2 border-t">
+              <Textarea
+                placeholder="Enter rejection reason (optional)"
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+                className="min-h-[80px]"
+              />
+              <div className="flex gap-2">
+                <Button
+                  variant="default"
+                  onClick={() => approveMutation.mutate(expense.id)}
+                  disabled={approveMutation.isPending || rejectMutation.isPending}
+                >
+                  <CheckCircle className="mr-2 h-4 w-4" />
+                  Approve
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={() => rejectMutation.mutate({ expenseId: expense.id, reason: rejectionReason })}
+                  disabled={approveMutation.isPending || rejectMutation.isPending}
+                >
+                  <XCircle className="mr-2 h-4 w-4" />
+                  Reject
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setSelectedExpense(null);
+                    setRejectionReason('');
+                  }}
+                  disabled={approveMutation.isPending || rejectMutation.isPending}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex gap-2 pt-2 border-t">
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => setSelectedExpense(expense.id)}
+              >
+                <Eye className="mr-2 h-4 w-4" />
+                Review
+              </Button>
+            </div>
+          )
+        )}
+      </CardContent>
+    </Card>
+  );
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
         <div>
-          <h2 className="text-2xl font-bold">Pending Approvals</h2>
-          <p className="text-muted-foreground">Review and approve expense requests</p>
+          <h2 className="text-2xl font-bold">Expense Approvals</h2>
+          <p className="text-muted-foreground">Review pending and completed expense approvals</p>
         </div>
 
         {isLoading ? (
           <div className="flex justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
-        ) : expenses && expenses.length > 0 ? (
-          <div className="grid gap-4">
-            {expenses.map((expense) => (
-              <Card key={expense.id}>
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <CardTitle>{expense.title}</CardTitle>
-                      <CardDescription>
-                        Submitted by {expense.profile?.full_name || 'Unknown'} • {formatDateTime(expense.created_at)}
-                      </CardDescription>
-                    </div>
-                    <Badge className={getStatusColor(expense.status)}>
-                      {expense.status.replace('_', ' ')}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <p className="text-muted-foreground">Amount</p>
-                      <p className="font-semibold text-lg">{formatCurrency(expense.amount)}</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Category</p>
-                      <p className="font-medium">{expense.category}</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Expense Date</p>
-                      <p className="font-medium">{formatDateTime(expense.expense_date)}</p>
-                    </div>
-                  </div>
-
-                  {expense.description && (
-                    <div>
-                      <p className="text-sm text-muted-foreground mb-1">Description</p>
-                      <p className="text-sm">{expense.description}</p>
-                    </div>
-                  )}
-
-                  {selectedExpense === expense.id ? (
-                    <div className="space-y-3 pt-2 border-t">
-                      <Textarea
-                        placeholder="Enter rejection reason (optional)"
-                        value={rejectionReason}
-                        onChange={(e) => setRejectionReason(e.target.value)}
-                        className="min-h-[80px]"
-                      />
-                      <div className="flex gap-2">
-                        <Button
-                          variant="default"
-                          onClick={() => approveMutation.mutate(expense.id)}
-                          disabled={approveMutation.isPending || rejectMutation.isPending}
-                        >
-                          <CheckCircle className="mr-2 h-4 w-4" />
-                          Approve
-                        </Button>
-                        <Button
-                          variant="destructive"
-                          onClick={() => rejectMutation.mutate({ expenseId: expense.id, reason: rejectionReason })}
-                          disabled={approveMutation.isPending || rejectMutation.isPending}
-                        >
-                          <XCircle className="mr-2 h-4 w-4" />
-                          Reject
-                        </Button>
-                        <Button
-                          variant="outline"
-                          onClick={() => {
-                            setSelectedExpense(null);
-                            setRejectionReason('');
-                          }}
-                          disabled={approveMutation.isPending || rejectMutation.isPending}
-                        >
-                          Cancel
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex gap-2 pt-2 border-t">
-                      <Button
-                        variant="default"
-                        size="sm"
-                        onClick={() => setSelectedExpense(expense.id)}
-                      >
-                        <Eye className="mr-2 h-4 w-4" />
-                        Review
-                      </Button>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
         ) : (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <p className="text-muted-foreground">No pending approvals at the moment</p>
-            </CardContent>
-          </Card>
+          <Tabs defaultValue="pending" className="w-full">
+            <TabsList>
+              <TabsTrigger value="pending">
+                Pending ({pendingExpenses.length})
+              </TabsTrigger>
+              <TabsTrigger value="completed">
+                Completed ({completedExpenses.length})
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="pending" className="space-y-4">
+              {pendingExpenses.length > 0 ? (
+                <div className="grid gap-4">
+                  {pendingExpenses.map((expense) => renderExpenseCard(expense, true))}
+                </div>
+              ) : (
+                <Card>
+                  <CardContent className="py-12 text-center">
+                    <p className="text-muted-foreground">No pending approvals at the moment</p>
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
+
+            <TabsContent value="completed" className="space-y-4">
+              {completedExpenses.length > 0 ? (
+                <div className="grid gap-4">
+                  {completedExpenses.map((expense) => renderExpenseCard(expense, false))}
+                </div>
+              ) : (
+                <Card>
+                  <CardContent className="py-12 text-center">
+                    <p className="text-muted-foreground">No completed approvals yet</p>
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
+          </Tabs>
         )}
       </div>
     </DashboardLayout>
