@@ -42,6 +42,7 @@ const Dashboard = () => {
   });
   const [recentExpenses, setRecentExpenses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activityStats, setActivityStats] = useState<{ approvedCount?: number; paidCount?: number }>({});
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -80,6 +81,27 @@ const Dashboard = () => {
 
         setStats(stats);
         setRecentExpenses(expenses?.slice(0, 5) || []);
+
+        // Fetch role-specific activity stats
+        if (primaryRole === 'manager') {
+          const { data: managerApprovals } = await supabase
+            .from('expenses')
+            .select('id')
+            .eq('manager_approved_by', user.id);
+          setActivityStats({ approvedCount: managerApprovals?.length || 0 });
+        } else if (primaryRole === 'owner') {
+          const { data: ownerApprovals } = await supabase
+            .from('expenses')
+            .select('id')
+            .eq('owner_approved_by', user.id);
+          setActivityStats({ approvedCount: ownerApprovals?.length || 0 });
+        } else if (primaryRole === 'accounts') {
+          const { data: payments } = await supabase
+            .from('expenses')
+            .select('id')
+            .eq('paid_by', user.id);
+          setActivityStats({ paidCount: payments?.length || 0 });
+        }
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
       } finally {
@@ -175,6 +197,52 @@ const Dashboard = () => {
               </p>
             </CardContent>
           </Card>
+
+          {/* Role-specific activity stats */}
+          {primaryRole === 'manager' && activityStats.approvedCount !== undefined && (
+            <Card className="border-primary/30 bg-primary/5">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">My Approvals</CardTitle>
+                <TrendingUp className="h-4 w-4 text-primary" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-primary">{activityStats.approvedCount}</div>
+                <p className="text-xs text-muted-foreground">
+                  Expenses approved by you
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
+          {primaryRole === 'owner' && activityStats.approvedCount !== undefined && (
+            <Card className="border-primary/30 bg-primary/5">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">My Approvals</CardTitle>
+                <TrendingUp className="h-4 w-4 text-primary" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-primary">{activityStats.approvedCount}</div>
+                <p className="text-xs text-muted-foreground">
+                  Expenses approved by you
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
+          {primaryRole === 'accounts' && activityStats.paidCount !== undefined && (
+            <Card className="border-primary/30 bg-primary/5">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">My Payments</CardTitle>
+                <DollarSign className="h-4 w-4 text-primary" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-primary">{activityStats.paidCount}</div>
+                <p className="text-xs text-muted-foreground">
+                  Expenses paid by you
+                </p>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* Recent Expenses */}
@@ -182,7 +250,19 @@ const Dashboard = () => {
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle>Recent Expenses</CardTitle>
-              <Button variant="outline" size="sm" onClick={() => navigate('/expenses')}>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => {
+                  if (primaryRole === 'manager' || primaryRole === 'owner') {
+                    navigate('/approvals');
+                  } else if (primaryRole === 'accounts') {
+                    navigate('/payments');
+                  } else {
+                    navigate('/dashboard');
+                  }
+                }}
+              >
                 View All
               </Button>
             </div>
