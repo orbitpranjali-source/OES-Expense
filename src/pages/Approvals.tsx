@@ -22,24 +22,45 @@ const Approvals = () => {
   const [rejectionReason, setRejectionReason] = useState('');
 
   const { data: expenses, isLoading } = useQuery({
-    queryKey: ['approvals', primaryRole],
+    queryKey: ['approvals', primaryRole, user?.id],
     queryFn: async () => {
-      let query = supabase
+      // Fetch pending expenses based on role
+      let pendingQuery = supabase
         .from('expenses')
         .select('*')
         .order('created_at', { ascending: false });
       
       if (primaryRole === 'manager') {
-        query = query.in('status', ['submitted', 'reviewed', 'manager_approved', 'manager_rejected']);
+        pendingQuery = pendingQuery.in('status', ['submitted', 'reviewed']);
       } else if (primaryRole === 'owner') {
-        query = query.in('status', ['manager_approved', 'owner_approved', 'owner_rejected']);
+        pendingQuery = pendingQuery.eq('status', 'manager_approved');
       }
 
-      const { data: expensesData, error: expensesError } = await query;
+      const { data: pendingData, error: pendingError } = await pendingQuery;
+      if (pendingError) throw pendingError;
 
-      if (expensesError) throw expensesError;
+      // Fetch completed expenses (approved/rejected by this user)
+      let completedQuery = supabase
+        .from('expenses')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-      const userIds = expensesData?.map(e => e.user_id) || [];
+      if (primaryRole === 'manager') {
+        // Manager's completed: expenses they approved or rejected
+        completedQuery = completedQuery.or(`manager_approved_by.eq.${user?.id},and(status.eq.manager_rejected,manager_rejection_reason.neq.null)`);
+      } else if (primaryRole === 'owner') {
+        // Owner's completed: expenses they approved or rejected
+        completedQuery = completedQuery.or(`owner_approved_by.eq.${user?.id},and(status.eq.owner_rejected,owner_rejection_reason.neq.null)`);
+      }
+
+      const { data: completedData, error: completedError } = await completedQuery;
+      if (completedError) throw completedError;
+
+      // Combine and deduplicate
+      const allExpenses = [...(pendingData || []), ...(completedData || [])];
+      const uniqueExpenses = Array.from(new Map(allExpenses.map(e => [e.id, e])).values());
+
+      const userIds = uniqueExpenses?.map(e => e.user_id) || [];
       const { data: profilesData } = await supabase
         .from('profiles')
         .select('id, full_name, email')
@@ -47,7 +68,7 @@ const Approvals = () => {
 
       const profilesMap = new Map(profilesData?.map(p => [p.id, p]));
 
-      return expensesData?.map(expense => ({
+      return uniqueExpenses?.map(expense => ({
         ...expense,
         profile: profilesMap.get(expense.user_id),
       })) || [];
@@ -120,17 +141,28 @@ const Approvals = () => {
     return colors[status] || 'bg-gray-500';
   };
 
-  const isPending = (status: string) => {
+  const isPending = (expense: any) => {
     if (primaryRole === 'manager') {
-      return ['submitted', 'reviewed'].includes(status);
+      return ['submitted', 'reviewed'].includes(expense.status);
     } else if (primaryRole === 'owner') {
-      return status === 'manager_approved';
+      return expense.status === 'manager_approved';
     }
     return false;
   };
 
-  const pendingExpenses = expenses?.filter(e => isPending(e.status)) || [];
-  const completedExpenses = expenses?.filter(e => !isPending(e.status)) || [];
+  const isCompleted = (expense: any) => {
+    if (primaryRole === 'manager') {
+      // Completed if manager approved this expense OR it's manager_rejected
+      return expense.manager_approved_by === user?.id || expense.status === 'manager_rejected';
+    } else if (primaryRole === 'owner') {
+      // Completed if owner approved this expense OR it's owner_rejected
+      return expense.owner_approved_by === user?.id || expense.status === 'owner_rejected';
+    }
+    return false;
+  };
+
+  const pendingExpenses = expenses?.filter(e => isPending(e)) || [];
+  const completedExpenses = expenses?.filter(e => isCompleted(e)) || [];
 
   if (primaryRole !== 'manager' && primaryRole !== 'owner') {
     return (

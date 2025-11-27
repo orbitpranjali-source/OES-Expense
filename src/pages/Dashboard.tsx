@@ -267,7 +267,7 @@ const Dashboard = () => {
                   } else if (primaryRole === 'accounts') {
                     navigate('/payments');
                   } else {
-                    navigate('/dashboard');
+                    navigate('/expenses');
                   }
                 }}
               >

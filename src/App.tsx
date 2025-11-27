@@ -12,6 +12,7 @@ import ExpenseForm from "./pages/ExpenseForm";
 import Approvals from "./pages/Approvals";
 import Payments from "./pages/Payments";
 import Users from "./pages/Users";
+import MyExpenses from "./pages/MyExpenses";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -71,6 +72,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Users />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/expenses"
+              element={
+                <ProtectedRoute>
+                  <MyExpenses />
                 </ProtectedRoute>
               }
             />

@@ -11,7 +11,8 @@ import {
   Users, 
   CreditCard, 
   LogOut,
-  Bell
+  Bell,
+  FileText
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -27,6 +28,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ['employee', 'manager', 'owner', 'accounts'] },
+    { name: 'My Expenses', href: '/expenses', icon: FileText, roles: ['employee', 'manager', 'owner'] },
     { name: 'Add Expense', href: '/expense/new', icon: Plus, roles: ['employee', 'manager', 'owner'] },
     { name: 'Approvals', href: '/approvals', icon: CheckCircle, roles: ['manager', 'owner'] },
     { name: 'Payments', href: '/payments', icon: CreditCard, roles: ['accounts'] },
