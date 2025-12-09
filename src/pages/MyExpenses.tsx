@@ -11,7 +11,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { formatCurrency, formatDate } from '@/lib/utils';
-import { Loader2, Search, Plus, FileText, Eye, TrendingUp, TrendingDown, Clock, Wallet } from 'lucide-react';
+import { Loader2, Search, Plus, FileText, Eye, TrendingUp, TrendingDown, Clock, Wallet, Banknote, CheckCircle, XCircle } from 'lucide-react';
+import { AdvanceRequestDialog } from '@/components/AdvanceRequestDialog';
 
 const MyExpenses = () => {
   const { user } = useAuth();
@@ -33,6 +34,47 @@ const MyExpenses = () => {
     },
     enabled: !!user,
   });
+
+  // Fetch advance requests
+  const { data: advances, isLoading: advancesLoading } = useQuery({
+    queryKey: ['advance-requests', user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('advance_requests')
+        .select('*')
+        .eq('user_id', user?.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user,
+  });
+
+  // Calculate advance summary
+  const advanceSummary = useMemo(() => {
+    if (!advances) return { pending: 0, approved: 0, disbursed: 0, rejected: 0 };
+    
+    return advances.reduce((acc, advance) => {
+      const amount = Number(advance.amount);
+      if (advance.status === 'pending') acc.pending += amount;
+      else if (advance.status === 'approved') acc.approved += amount;
+      else if (advance.status === 'disbursed') acc.disbursed += amount;
+      else if (advance.status === 'rejected') acc.rejected += amount;
+      return acc;
+    }, { pending: 0, approved: 0, disbursed: 0, rejected: 0 });
+  }, [advances]);
+
+  const getAdvanceStatusBadge = (status: string) => {
+    const variants: Record<string, { variant: 'default' | 'secondary' | 'destructive' | 'outline', text: string, className?: string }> = {
+      pending: { variant: 'secondary', text: 'Pending Approval' },
+      approved: { variant: 'default', text: 'Approved', className: 'bg-green-500' },
+      rejected: { variant: 'destructive', text: 'Rejected' },
+      disbursed: { variant: 'default', text: 'Disbursed', className: 'bg-emerald-600' },
+    };
+    const config = variants[status] || { variant: 'outline' as const, text: status };
+    return <Badge variant={config.variant} className={config.className}>{config.text}</Badge>;
+  };
 
   // Calculate credit/debit summary
   const financialSummary = useMemo(() => {
@@ -161,6 +203,7 @@ const MyExpenses = () => {
         <Tabs defaultValue="expenses" className="space-y-4">
           <TabsList>
             <TabsTrigger value="expenses">All Expenses</TabsTrigger>
+            <TabsTrigger value="advances">Advances</TabsTrigger>
             <TabsTrigger value="history">Payment History</TabsTrigger>
           </TabsList>
 
@@ -255,6 +298,109 @@ const MyExpenses = () => {
                         <div className="mt-3 p-2 bg-destructive/10 rounded-md">
                           <p className="text-sm text-destructive">
                             <strong>Rejection Reason:</strong> {expense.manager_rejection_reason || expense.owner_rejection_reason}
+                          </p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="advances" className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 flex-1">
+                <Card className="p-4">
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-amber-500" />
+                    <div>
+                      <p className="text-xs text-muted-foreground">Pending</p>
+                      <p className="font-semibold text-amber-600">{formatCurrency(advanceSummary.pending)}</p>
+                    </div>
+                  </div>
+                </Card>
+                <Card className="p-4">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <div>
+                      <p className="text-xs text-muted-foreground">Approved</p>
+                      <p className="font-semibold text-green-600">{formatCurrency(advanceSummary.approved)}</p>
+                    </div>
+                  </div>
+                </Card>
+                <Card className="p-4">
+                  <div className="flex items-center gap-2">
+                    <Banknote className="h-4 w-4 text-emerald-500" />
+                    <div>
+                      <p className="text-xs text-muted-foreground">Disbursed</p>
+                      <p className="font-semibold text-emerald-600">{formatCurrency(advanceSummary.disbursed)}</p>
+                    </div>
+                  </div>
+                </Card>
+                <Card className="p-4">
+                  <div className="flex items-center gap-2">
+                    <XCircle className="h-4 w-4 text-destructive" />
+                    <div>
+                      <p className="text-xs text-muted-foreground">Rejected</p>
+                      <p className="font-semibold text-destructive">{formatCurrency(advanceSummary.rejected)}</p>
+                    </div>
+                  </div>
+                </Card>
+              </div>
+              <div className="ml-4">
+                <AdvanceRequestDialog />
+              </div>
+            </div>
+
+            {advancesLoading ? (
+              <div className="flex justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : !advances || advances.length === 0 ? (
+              <Card>
+                <CardContent className="flex flex-col items-center justify-center py-12">
+                  <Banknote className="h-12 w-12 text-muted-foreground mb-4" />
+                  <p className="text-lg font-medium">No advance requests</p>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    You haven't requested any advances yet
+                  </p>
+                  <AdvanceRequestDialog />
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid gap-4">
+                {advances.map((advance) => (
+                  <Card key={advance.id}>
+                    <CardHeader className="pb-2">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <CardTitle className="text-lg">{formatCurrency(advance.amount)}</CardTitle>
+                          <CardDescription>
+                            Requested on {formatDate(advance.requested_at)}
+                          </CardDescription>
+                        </div>
+                        {getAdvanceStatusBadge(advance.status)}
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-muted-foreground mb-2">{advance.reason}</p>
+                      
+                      {advance.status === 'rejected' && advance.rejection_reason && (
+                        <div className="mt-3 p-2 bg-destructive/10 rounded-md">
+                          <p className="text-sm text-destructive">
+                            <strong>Rejection Reason:</strong> {advance.rejection_reason}
+                          </p>
+                        </div>
+                      )}
+                      
+                      {advance.status === 'disbursed' && (
+                        <div className="mt-3 p-2 bg-green-500/10 rounded-md">
+                          <p className="text-sm text-green-700">
+                            <strong>Disbursed on:</strong> {advance.disbursed_at ? formatDate(advance.disbursed_at) : 'N/A'}
+                            {advance.payment_reference && (
+                              <span className="ml-2">• Ref: {advance.payment_reference}</span>
+                            )}
                           </p>
                         </div>
                       )}

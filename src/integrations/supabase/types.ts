@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      advance_requests: {
+        Row: {
+          amount: number
+          created_at: string
+          disbursed_at: string | null
+          disbursed_by: string | null
+          id: string
+          payment_reference: string | null
+          reason: string
+          rejection_reason: string | null
+          requested_at: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["advance_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          disbursed_at?: string | null
+          disbursed_by?: string | null
+          id?: string
+          payment_reference?: string | null
+          reason: string
+          rejection_reason?: string | null
+          requested_at?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["advance_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          disbursed_at?: string | null
+          disbursed_by?: string | null
+          id?: string
+          payment_reference?: string | null
+          reason?: string
+          rejection_reason?: string | null
+          requested_at?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["advance_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       expense_files: {
         Row: {
           created_at: string
@@ -272,6 +323,7 @@ export type Database = {
       }
     }
     Enums: {
+      advance_status: "pending" | "approved" | "rejected" | "disbursed"
       expense_status:
         | "draft"
         | "submitted"
@@ -410,6 +462,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      advance_status: ["pending", "approved", "rejected", "disbursed"],
       expense_status: [
         "draft",
         "submitted",
