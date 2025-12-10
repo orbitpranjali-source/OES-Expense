@@ -8,18 +8,50 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { formatCurrency, formatDate } from '@/lib/utils';
-import { Loader2, Search, Plus, FileText, Eye, TrendingUp, TrendingDown, Clock, Wallet, Banknote, CheckCircle, XCircle } from 'lucide-react';
+import { Loader2, Search, Plus, FileText, Eye, TrendingUp, TrendingDown, Clock, Wallet, Banknote, CheckCircle, XCircle, Pencil, Trash2 } from 'lucide-react';
 import { AdvanceRequestDialog } from '@/components/AdvanceRequestDialog';
-
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { toast } from 'sonner';
 const MyExpenses = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
+  const deleteExpenseMutation = useMutation({
+    mutationFn: async (expenseId: string) => {
+      // First delete associated files
+      const { error: filesError } = await supabase
+        .from('expense_files')
+        .delete()
+        .eq('expense_id', expenseId);
+      
+      if (filesError) throw filesError;
+
+      // Then delete the expense
+      const { error } = await supabase
+        .from('expenses')
+        .delete()
+        .eq('id', expenseId);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['my-expenses'] });
+      toast.success('Expense deleted successfully');
+    },
+    onError: (error: Error) => {
+      toast.error('Failed to delete expense: ' + error.message);
+    },
+  });
+
+  const canEditOrDelete = (status: string) => {
+    return status === 'draft';
+  };
   const { data: expenses, isLoading } = useQuery({
     queryKey: ['my-expenses', user?.id],
     queryFn: async () => {
@@ -288,10 +320,56 @@ const MyExpenses = () => {
                             </p>
                           )}
                         </div>
-                        <Button variant="ghost" size="sm">
-                          <Eye className="h-4 w-4 mr-2" />
-                          View
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          {canEditOrDelete(expense.status) && (
+                            <>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigate(`/expense/${expense.id}`);
+                                }}
+                              >
+                                <Pencil className="h-4 w-4 mr-2" />
+                                Edit
+                              </Button>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button 
+                                    variant="destructive" 
+                                    size="sm"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    Delete
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Delete Expense</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Are you sure you want to delete "{expense.title}"? This action cannot be undone.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => deleteExpenseMutation.mutate(expense.id)}
+                                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                    >
+                                      Delete
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </>
+                          )}
+                          <Button variant="ghost" size="sm">
+                            <Eye className="h-4 w-4 mr-2" />
+                            View
+                          </Button>
+                        </div>
                       </div>
                       
                       {(expense.manager_rejection_reason || expense.owner_rejection_reason) && (
