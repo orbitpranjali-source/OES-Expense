@@ -16,7 +16,6 @@ const signupSchema = z.object({
   email: z.string().trim().email('Invalid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
   fullName: z.string().trim().min(2, 'Full name must be at least 2 characters'),
-  role: z.enum(['employee', 'manager', 'owner', 'accounts']),
 });
 
 const loginSchema = z.object({
@@ -34,7 +33,6 @@ const Auth = () => {
   const [signupEmail, setSignupEmail] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
   const [fullName, setFullName] = useState('');
-  const [role, setRole] = useState<string>('employee');
   
   // Login form
   const [loginEmail, setLoginEmail] = useState('');
@@ -54,11 +52,12 @@ const Auth = () => {
         email: signupEmail,
         password: signupPassword,
         fullName,
-        role,
       });
 
       setLoading(true);
 
+      // SECURITY: Role is NOT sent from client - all users start as 'employee'
+      // Role upgrades must be done by an owner through admin interface
       const { error } = await supabase.auth.signUp({
         email: validatedData.email,
         password: validatedData.password,
@@ -66,7 +65,6 @@ const Auth = () => {
           emailRedirectTo: `${window.location.origin}/dashboard`,
           data: {
             full_name: validatedData.fullName,
-            role: validatedData.role,
           },
         },
       });
@@ -253,20 +251,6 @@ const Auth = () => {
                     required
                     disabled={loading}
                   />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="role">Role</Label>
-                  <Select value={role} onValueChange={setRole} disabled={loading}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select your role" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="employee">Employee</SelectItem>
-                      <SelectItem value="manager">Manager</SelectItem>
-                      <SelectItem value="owner">Owner</SelectItem>
-                      <SelectItem value="accounts">Accounts</SelectItem>
-                    </SelectContent>
-                  </Select>
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? (
