@@ -153,7 +153,7 @@ const Dashboard = () => {
     <DashboardLayout>
       <div className="space-y-6">
         {/* Stats Cards */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Expenses</CardTitle>
@@ -189,6 +189,19 @@ const Dashboard = () => {
               <div className="text-2xl font-bold">{stats.approved}</div>
               <p className="text-xs text-muted-foreground">
                 Including paid
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Rejected</CardTitle>
+              <XCircle className="h-4 w-4 text-destructive" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.rejected}</div>
+              <p className="text-xs text-muted-foreground">
+                Total rejections
               </p>
             </CardContent>
           </Card>
@@ -314,46 +327,44 @@ const Dashboard = () => {
         </Card>
 
         {/* Quick Actions */}
-        {primaryRole !== 'accounts' && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-4 sm:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Quick Actions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Button
+                className="h-auto flex-col items-start gap-2 p-4"
+                variant="outline"
+                onClick={() => navigate('/expense/new')}
+              >
+                <Receipt className="h-5 w-5 text-primary" />
+                <div className="text-left">
+                  <div className="font-semibold">New Expense</div>
+                  <div className="text-xs text-muted-foreground">
+                    Submit a new expense for approval
+                  </div>
+                </div>
+              </Button>
+
+              {(primaryRole === 'manager' || primaryRole === 'owner') && (
                 <Button
                   className="h-auto flex-col items-start gap-2 p-4"
                   variant="outline"
-                  onClick={() => navigate('/expense/new')}
+                  onClick={() => navigate('/approvals')}
                 >
-                  <Receipt className="h-5 w-5 text-primary" />
+                  <CheckCircle className="h-5 w-5 text-success" />
                   <div className="text-left">
-                    <div className="font-semibold">New Expense</div>
+                    <div className="font-semibold">Review Expenses</div>
                     <div className="text-xs text-muted-foreground">
-                      Submit a new expense for approval
+                      Approve or reject pending expenses
                     </div>
                   </div>
                 </Button>
-
-                {(primaryRole === 'manager' || primaryRole === 'owner') && (
-                  <Button
-                    className="h-auto flex-col items-start gap-2 p-4"
-                    variant="outline"
-                    onClick={() => navigate('/approvals')}
-                  >
-                    <CheckCircle className="h-5 w-5 text-success" />
-                    <div className="text-left">
-                      <div className="font-semibold">Review Expenses</div>
-                      <div className="text-xs text-muted-foreground">
-                        Approve or reject pending expenses
-                      </div>
-                    </div>
-                  </Button>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+              )}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </DashboardLayout>
   );
