@@ -305,12 +305,17 @@ const Approvals = () => {
         {showActions && (
           selectedExpense === expense.id ? (
             <div className="space-y-3 pt-2 border-t">
-              <Textarea
-                placeholder="Enter rejection reason (optional)"
-                value={rejectionReason}
-                onChange={(e) => setRejectionReason(e.target.value)}
-                className="min-h-[80px]"
-              />
+              <div className="space-y-1">
+                <Textarea
+                  placeholder="Enter rejection reason (required for rejection)"
+                  value={rejectionReason}
+                  onChange={(e) => setRejectionReason(e.target.value)}
+                  className="min-h-[80px]"
+                />
+                {!rejectionReason.trim() && (
+                  <p className="text-xs text-muted-foreground">* Rejection reason is required to reject an expense</p>
+                )}
+              </div>
               <div className="flex gap-2">
                 <Button
                   variant="default"
@@ -322,7 +327,13 @@ const Approvals = () => {
                 </Button>
                 <Button
                   variant="destructive"
-                  onClick={() => rejectMutation.mutate({ expenseId: expense.id, reason: rejectionReason })}
+                  onClick={() => {
+                    if (!rejectionReason.trim()) {
+                      toast({ title: 'Please provide a rejection reason', variant: 'destructive' });
+                      return;
+                    }
+                    rejectMutation.mutate({ expenseId: expense.id, reason: rejectionReason });
+                  }}
                   disabled={approveMutation.isPending || rejectMutation.isPending}
                 >
                   <XCircle className="mr-2 h-4 w-4" />
