@@ -28,8 +28,8 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ['employee', 'manager', 'owner', 'accounts'] },
-    { name: 'My Expenses', href: '/expenses', icon: FileText, roles: ['employee', 'manager', 'owner'] },
-    { name: 'Add Expense', href: '/expense/new', icon: Plus, roles: ['employee', 'manager', 'owner'] },
+    { name: 'My Expenses', href: '/expenses', icon: FileText, roles: ['employee', 'manager', 'owner', 'accounts'] },
+    { name: 'Add Expense', href: '/expense/new', icon: Plus, roles: ['employee', 'manager', 'owner', 'accounts'] },
     { name: 'Approvals', href: '/approvals', icon: CheckCircle, roles: ['manager', 'owner'] },
     { name: 'Payments', href: '/payments', icon: CreditCard, roles: ['accounts'] },
     { name: 'Users', href: '/users', icon: Users, roles: ['owner'] },
