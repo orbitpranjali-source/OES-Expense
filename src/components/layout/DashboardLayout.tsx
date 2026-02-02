@@ -3,20 +3,20 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
 import { useUserRole } from '@/hooks/useUserRole';
 import { Button } from '@/components/ui/button';
-import { 
-  Receipt, 
-  LayoutDashboard, 
-  Plus, 
-  CheckCircle, 
-  Users, 
-  CreditCard, 
+import {
+  Receipt,
+  LayoutDashboard,
+  Plus,
+  CheckCircle,
+  Users,
+  CreditCard,
   LogOut,
   Bell,
   FileText
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import orbitLogo from '@/assets/orbit-logo.png';
+const orbitLogo = '/orbit-logo.png';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -55,7 +55,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         <div className="flex h-full flex-col">
           {/* Logo */}
           <div className="flex h-16 items-center gap-2 border-b px-6">
-            <img src={orbitLogo} alt="OES Logo" className="h-8 w-8 object-contain" />
+            <img src="/orbit-logo.png" alt="OES Logo" className="h-8 w-8 object-contain" />
             <span className="text-lg font-bold tracking-tight">OES Expense Flow</span>
           </div>
 

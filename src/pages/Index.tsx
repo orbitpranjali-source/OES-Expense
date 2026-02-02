@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import { Receipt, CheckCircle, Users, TrendingUp, ArrowRight } from 'lucide-react';
-import orbitLogo from '@/assets/orbit-logo.png';
+const orbitLogo = '/orbit-logo.png';
 
 const Index = () => {
   const { user } = useAuth();
@@ -21,7 +21,7 @@ const Index = () => {
       <header className="border-b bg-card/50 backdrop-blur-sm">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-2">
-            <img src={orbitLogo} alt="OES Logo" className="h-8 w-8 object-contain" />
+            <img src="/orbit-logo.png" alt="OES Logo" className="h-8 w-8 object-contain" />
             <span className="text-xl font-bold">OES Expense Flow</span>
           </div>
           <Button onClick={() => navigate('/auth')}>
