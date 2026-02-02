@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import orbitLogo from '@/assets/orbit-logo.png';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -54,10 +55,8 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         <div className="flex h-full flex-col">
           {/* Logo */}
           <div className="flex h-16 items-center gap-2 border-b px-6">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-              <Receipt className="h-5 w-5 text-primary-foreground" />
-            </div>
-            <span className="text-lg font-semibold">ExpenseFlow</span>
+            <img src={orbitLogo} alt="OES Logo" className="h-8 w-8 object-contain" />
+            <span className="text-lg font-bold tracking-tight">OES Expense Flow</span>
           </div>
 
           {/* Navigation */}

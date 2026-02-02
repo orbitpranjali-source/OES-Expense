@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Receipt } from 'lucide-react';
 import { z } from 'zod';
+import orbitLogo from '@/assets/orbit-logo.png';
 
 const signupSchema = z.object({
   email: z.string().trim().email('Invalid email address'),
@@ -28,12 +29,12 @@ const Auth = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  
+
   // Signup form
   const [signupEmail, setSignupEmail] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
   const [fullName, setFullName] = useState('');
-  
+
   // Login form
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
@@ -46,7 +47,7 @@ const Auth = () => {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       const validatedData = signupSchema.parse({
         email: signupEmail,
@@ -109,7 +110,7 @@ const Auth = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       const validatedData = loginSchema.parse({
         email: loginEmail,
@@ -160,10 +161,10 @@ const Auth = () => {
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-primary/5 via-background to-accent p-4">
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="space-y-1 text-center">
-          <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-            <Receipt className="h-6 w-6 text-primary" />
+          <div className="mx-auto mb-2 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+            <img src={orbitLogo} alt="OES Logo" className="h-10 w-10 object-contain" />
           </div>
-          <CardTitle className="text-2xl font-bold">Expense Management</CardTitle>
+          <CardTitle className="text-2xl font-bold">OES Expense Flow</CardTitle>
           <CardDescription>
             Streamline your expense approval workflow
           </CardDescription>
@@ -174,7 +175,7 @@ const Auth = () => {
               <TabsTrigger value="login">Login</TabsTrigger>
               <TabsTrigger value="signup">Sign Up</TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="login" className="space-y-4">
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
@@ -213,7 +214,7 @@ const Auth = () => {
                 </Button>
               </form>
             </TabsContent>
-            
+
             <TabsContent value="signup" className="space-y-4">
               <form onSubmit={handleSignup} className="space-y-4">
                 <div className="space-y-2">

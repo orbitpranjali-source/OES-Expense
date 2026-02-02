@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import { Receipt, CheckCircle, Users, TrendingUp, ArrowRight } from 'lucide-react';
+import orbitLogo from '@/assets/orbit-logo.png';
 
 const Index = () => {
   const { user } = useAuth();
@@ -20,10 +21,8 @@ const Index = () => {
       <header className="border-b bg-card/50 backdrop-blur-sm">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-              <Receipt className="h-5 w-5 text-primary-foreground" />
-            </div>
-            <span className="text-xl font-bold">ExpenseFlow</span>
+            <img src={orbitLogo} alt="OES Logo" className="h-8 w-8 object-contain" />
+            <span className="text-xl font-bold">OES Expense Flow</span>
           </div>
           <Button onClick={() => navigate('/auth')}>
             Get Started <ArrowRight className="ml-2 h-4 w-4" />
@@ -100,7 +99,7 @@ const Index = () => {
       {/* Footer */}
       <footer className="border-t bg-card/50 backdrop-blur-sm py-6">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          © 2024 ExpenseFlow. Production-ready expense management system.
+          © 2024 OES Expense Flow. Production-ready expense management system.
         </div>
       </footer>
     </div>
