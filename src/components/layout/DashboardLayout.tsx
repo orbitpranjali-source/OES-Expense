@@ -55,7 +55,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         <div className="flex h-full flex-col">
           {/* Logo */}
           <div className="flex h-16 items-center gap-2 border-b px-6">
-            <img src="/orbit-logo.png" alt="OES Logo" className="h-8 w-8 object-contain" />
+            <img src={`${import.meta.env.BASE_URL}orbit-logo.png`} alt="OES Logo" className="h-10 w-10 object-contain" />
             <span className="text-lg font-bold tracking-tight">OES Expense Flow</span>
           </div>
 

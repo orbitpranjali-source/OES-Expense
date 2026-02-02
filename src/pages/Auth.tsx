@@ -162,7 +162,7 @@ const Auth = () => {
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="space-y-1 text-center">
           <div className="mx-auto mb-2 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
-            <img src="/orbit-logo.png" alt="OES Logo" className="h-10 w-10 object-contain" />
+            <img src={`${import.meta.env.BASE_URL}orbit-logo.png`} alt="OES Logo" className="h-10 w-10 object-contain" />
           </div>
           <CardTitle className="text-2xl font-bold">OES Expense Flow</CardTitle>
           <CardDescription>

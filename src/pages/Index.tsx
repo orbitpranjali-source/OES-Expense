@@ -21,7 +21,7 @@ const Index = () => {
       <header className="border-b bg-card/50 backdrop-blur-sm">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-2">
-            <img src="/orbit-logo.png" alt="OES Logo" className="h-8 w-8 object-contain" />
+            <img src={`${import.meta.env.BASE_URL}orbit-logo.png`} alt="OES Logo" className="h-8 w-8 object-contain" />
             <span className="text-xl font-bold">OES Expense Flow</span>
           </div>
           <Button onClick={() => navigate('/auth')}>
