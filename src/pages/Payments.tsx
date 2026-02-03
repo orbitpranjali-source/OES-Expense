@@ -105,161 +105,157 @@ const Payments = () => {
 
   if (primaryRole !== 'accounts') {
     return (
-      <DashboardLayout>
-        <div className="text-center">
-          <p className="text-muted-foreground">You don't have permission to access this page.</p>
-        </div>
-      </DashboardLayout>
+      <div className="text-center">
+        <p className="text-muted-foreground">You don't have permission to access this page.</p>
+      </div>
     );
   }
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
-        <div>
-          <h2 className="text-2xl font-bold">Payment Management</h2>
-          <p className="text-muted-foreground">Process approved expense payments</p>
-        </div>
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-bold">Payment Management</h2>
+        <p className="text-muted-foreground">Process approved expense payments</p>
+      </div>
 
-        <Tabs defaultValue="pending">
-          <TabsList>
-            <TabsTrigger value="pending">Pending Payments</TabsTrigger>
-            <TabsTrigger value="completed">Completed</TabsTrigger>
-          </TabsList>
+      <Tabs defaultValue="pending">
+        <TabsList>
+          <TabsTrigger value="pending">Pending Payments</TabsTrigger>
+          <TabsTrigger value="completed">Completed</TabsTrigger>
+        </TabsList>
 
-          <TabsContent value="pending" className="mt-6">
-            {loadingPending ? (
-              <div className="flex justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              </div>
-            ) : pendingExpenses && pendingExpenses.length > 0 ? (
-              <div className="grid gap-4">
-                {pendingExpenses.map((expense) => (
-                  <Card key={expense.id}>
-                    <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <CardTitle>{expense.title}</CardTitle>
-                          <CardDescription>
-                            Employee: {expense.profile?.full_name || 'Unknown'} • Approved: {formatDateTime(expense.owner_approved_at || '')}
-                          </CardDescription>
-                        </div>
-                        <Badge className="bg-green-500">Approved</Badge>
+        <TabsContent value="pending" className="mt-6">
+          {loadingPending ? (
+            <div className="flex justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          ) : pendingExpenses && pendingExpenses.length > 0 ? (
+            <div className="grid gap-4">
+              {pendingExpenses.map((expense) => (
+                <Card key={expense.id}>
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <CardTitle>{expense.title}</CardTitle>
+                        <CardDescription>
+                          Employee: {expense.profile?.full_name || 'Unknown'} • Approved: {formatDateTime(expense.owner_approved_at || '')}
+                        </CardDescription>
                       </div>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4 text-sm">
-                        <div>
-                          <p className="text-muted-foreground">Amount</p>
-                          <p className="font-semibold text-lg">{formatCurrency(expense.amount)}</p>
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground">Category</p>
-                          <p className="font-medium">{expense.category}</p>
-                        </div>
+                      <Badge className="bg-green-500">Approved</Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <p className="text-muted-foreground">Amount</p>
+                        <p className="font-semibold text-lg">{formatCurrency(expense.amount)}</p>
                       </div>
+                      <div>
+                        <p className="text-muted-foreground">Category</p>
+                        <p className="font-medium">{expense.category}</p>
+                      </div>
+                    </div>
 
-                      {selectedExpense === expense.id ? (
-                        <div className="space-y-3 pt-2 border-t">
-                          <div className="space-y-2">
-                            <Label htmlFor="payment-ref">Payment Reference</Label>
-                            <Input
-                              id="payment-ref"
-                              placeholder="Enter transaction/reference number"
-                              value={paymentReference}
-                              onChange={(e) => setPaymentReference(e.target.value)}
-                            />
-                          </div>
-                          <div className="flex gap-2">
-                            <Button
-                              onClick={() => markAsPaidMutation.mutate({ expenseId: expense.id, reference: paymentReference })}
-                              disabled={markAsPaidMutation.isPending || !paymentReference.trim()}
-                            >
-                              <CheckCircle className="mr-2 h-4 w-4" />
-                              Mark as Paid
-                            </Button>
-                            <Button
-                              variant="outline"
-                              onClick={() => {
-                                setSelectedExpense(null);
-                                setPaymentReference('');
-                              }}
-                              disabled={markAsPaidMutation.isPending}
-                            >
-                              Cancel
-                            </Button>
-                          </div>
+                    {selectedExpense === expense.id ? (
+                      <div className="space-y-3 pt-2 border-t">
+                        <div className="space-y-2">
+                          <Label htmlFor="payment-ref">Payment Reference</Label>
+                          <Input
+                            id="payment-ref"
+                            placeholder="Enter transaction/reference number"
+                            value={paymentReference}
+                            onChange={(e) => setPaymentReference(e.target.value)}
+                          />
                         </div>
-                      ) : (
-                        <div className="pt-2 border-t">
+                        <div className="flex gap-2">
                           <Button
-                            size="sm"
-                            onClick={() => setSelectedExpense(expense.id)}
+                            onClick={() => markAsPaidMutation.mutate({ expenseId: expense.id, reference: paymentReference })}
+                            disabled={markAsPaidMutation.isPending || !paymentReference.trim()}
                           >
-                            <CreditCard className="mr-2 h-4 w-4" />
-                            Process Payment
+                            <CheckCircle className="mr-2 h-4 w-4" />
+                            Mark as Paid
+                          </Button>
+                          <Button
+                            variant="outline"
+                            onClick={() => {
+                              setSelectedExpense(null);
+                              setPaymentReference('');
+                            }}
+                            disabled={markAsPaidMutation.isPending}
+                          >
+                            Cancel
                           </Button>
                         </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <Card>
-                <CardContent className="py-12 text-center">
-                  <p className="text-muted-foreground">No pending payments at the moment</p>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
+                      </div>
+                    ) : (
+                      <div className="pt-2 border-t">
+                        <Button
+                          size="sm"
+                          onClick={() => setSelectedExpense(expense.id)}
+                        >
+                          <CreditCard className="mr-2 h-4 w-4" />
+                          Process Payment
+                        </Button>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <Card>
+              <CardContent className="py-12 text-center">
+                <p className="text-muted-foreground">No pending payments at the moment</p>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
 
-          <TabsContent value="completed" className="mt-6">
-            {loadingPaid ? (
-              <div className="flex justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              </div>
-            ) : paidExpenses && paidExpenses.length > 0 ? (
-              <div className="grid gap-4">
-                {paidExpenses.map((expense) => (
-                  <Card key={expense.id}>
-                    <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <div>
+        <TabsContent value="completed" className="mt-6">
+          {loadingPaid ? (
+            <div className="flex justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          ) : paidExpenses && paidExpenses.length > 0 ? (
+            <div className="grid gap-4">
+              {paidExpenses.map((expense) => (
+                <Card key={expense.id}>
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div>
                         <CardTitle>{expense.title}</CardTitle>
                         <CardDescription>
                           Employee: {expense.profile?.full_name || 'Unknown'} • Paid: {formatDateTime(expense.paid_at || '')}
                         </CardDescription>
-                        </div>
-                        <Badge className="bg-blue-500">Paid</Badge>
                       </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-2 gap-4 text-sm">
-                        <div>
-                          <p className="text-muted-foreground">Amount</p>
-                          <p className="font-semibold text-lg">{formatCurrency(expense.amount)}</p>
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground">Payment Reference</p>
-                          <p className="font-medium">{expense.payment_reference || 'N/A'}</p>
-                        </div>
+                      <Badge className="bg-blue-500">Paid</Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <p className="text-muted-foreground">Amount</p>
+                        <p className="font-semibold text-lg">{formatCurrency(expense.amount)}</p>
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <Card>
-                <CardContent className="py-12 text-center">
-                  <p className="text-muted-foreground">No completed payments yet</p>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
-        </Tabs>
-      </div>
-    </DashboardLayout>
+                      <div>
+                        <p className="text-muted-foreground">Payment Reference</p>
+                        <p className="font-medium">{expense.payment_reference || 'N/A'}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <Card>
+              <CardContent className="py-12 text-center">
+                <p className="text-muted-foreground">No completed payments yet</p>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 };
 

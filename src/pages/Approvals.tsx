@@ -30,7 +30,7 @@ const Approvals = () => {
         .from('expenses')
         .select('*')
         .order('created_at', { ascending: false });
-      
+
       if (primaryRole === 'manager') {
         pendingQuery = pendingQuery.in('status', ['submitted', 'reviewed']);
       } else if (primaryRole === 'owner') {
@@ -241,17 +241,15 @@ const Approvals = () => {
 
   const pendingExpenses = expenses?.filter(e => isPending(e)) || [];
   const completedExpenses = expenses?.filter(e => isCompleted(e)) || [];
-  
+
   const pendingAdvances = advanceRequests?.filter(a => a.status === 'pending') || [];
   const completedAdvances = advanceRequests?.filter(a => ['approved', 'rejected', 'disbursed'].includes(a.status)) || [];
 
   if (primaryRole !== 'manager' && primaryRole !== 'owner') {
     return (
-      <DashboardLayout>
-        <div className="text-center">
-          <p className="text-muted-foreground">You don't have permission to access this page.</p>
-        </div>
-      </DashboardLayout>
+      <div className="text-center">
+        <p className="text-muted-foreground">You don't have permission to access this page.</p>
+      </div>
     );
   }
 
@@ -478,113 +476,111 @@ const Approvals = () => {
   );
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
-        <div>
-          <h2 className="text-2xl font-bold">Approvals</h2>
-          <p className="text-muted-foreground">Review pending expenses and advance requests</p>
-        </div>
-
-        {isLoading || advancesLoading ? (
-          <div className="flex justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
-        ) : (
-          <Tabs defaultValue="expenses" className="w-full">
-            <TabsList>
-              <TabsTrigger value="expenses">
-                Expenses ({pendingExpenses.length} pending)
-              </TabsTrigger>
-              <TabsTrigger value="advances">
-                Advances ({pendingAdvances.length} pending)
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="expenses" className="space-y-4">
-              <Tabs defaultValue="pending" className="w-full">
-                <TabsList>
-                  <TabsTrigger value="pending">
-                    Pending ({pendingExpenses.length})
-                  </TabsTrigger>
-                  <TabsTrigger value="completed">
-                    Completed ({completedExpenses.length})
-                  </TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="pending" className="space-y-4">
-                  {pendingExpenses.length > 0 ? (
-                    <div className="grid gap-4">
-                      {pendingExpenses.map((expense) => renderExpenseCard(expense, true))}
-                    </div>
-                  ) : (
-                    <Card>
-                      <CardContent className="py-12 text-center">
-                        <p className="text-muted-foreground">No pending expense approvals</p>
-                      </CardContent>
-                    </Card>
-                  )}
-                </TabsContent>
-
-                <TabsContent value="completed" className="space-y-4">
-                  {completedExpenses.length > 0 ? (
-                    <div className="grid gap-4">
-                      {completedExpenses.map((expense) => renderExpenseCard(expense, false))}
-                    </div>
-                  ) : (
-                    <Card>
-                      <CardContent className="py-12 text-center">
-                        <p className="text-muted-foreground">No completed expense approvals</p>
-                      </CardContent>
-                    </Card>
-                  )}
-                </TabsContent>
-              </Tabs>
-            </TabsContent>
-
-            <TabsContent value="advances" className="space-y-4">
-              <Tabs defaultValue="pending" className="w-full">
-                <TabsList>
-                  <TabsTrigger value="pending">
-                    Pending ({pendingAdvances.length})
-                  </TabsTrigger>
-                  <TabsTrigger value="completed">
-                    Completed ({completedAdvances.length})
-                  </TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="pending" className="space-y-4">
-                  {pendingAdvances.length > 0 ? (
-                    <div className="grid gap-4">
-                      {pendingAdvances.map((advance) => renderAdvanceCard(advance, true))}
-                    </div>
-                  ) : (
-                    <Card>
-                      <CardContent className="py-12 text-center">
-                        <p className="text-muted-foreground">No pending advance requests</p>
-                      </CardContent>
-                    </Card>
-                  )}
-                </TabsContent>
-
-                <TabsContent value="completed" className="space-y-4">
-                  {completedAdvances.length > 0 ? (
-                    <div className="grid gap-4">
-                      {completedAdvances.map((advance) => renderAdvanceCard(advance, false))}
-                    </div>
-                  ) : (
-                    <Card>
-                      <CardContent className="py-12 text-center">
-                        <p className="text-muted-foreground">No completed advance requests</p>
-                      </CardContent>
-                    </Card>
-                  )}
-                </TabsContent>
-              </Tabs>
-            </TabsContent>
-          </Tabs>
-        )}
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-bold">Approvals</h2>
+        <p className="text-muted-foreground">Review pending expenses and advance requests</p>
       </div>
-    </DashboardLayout>
+
+      {isLoading || advancesLoading ? (
+        <div className="flex justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      ) : (
+        <Tabs defaultValue="expenses" className="w-full">
+          <TabsList>
+            <TabsTrigger value="expenses">
+              Expenses ({pendingExpenses.length} pending)
+            </TabsTrigger>
+            <TabsTrigger value="advances">
+              Advances ({pendingAdvances.length} pending)
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="expenses" className="space-y-4">
+            <Tabs defaultValue="pending" className="w-full">
+              <TabsList>
+                <TabsTrigger value="pending">
+                  Pending ({pendingExpenses.length})
+                </TabsTrigger>
+                <TabsTrigger value="completed">
+                  Completed ({completedExpenses.length})
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="pending" className="space-y-4">
+                {pendingExpenses.length > 0 ? (
+                  <div className="grid gap-4">
+                    {pendingExpenses.map((expense) => renderExpenseCard(expense, true))}
+                  </div>
+                ) : (
+                  <Card>
+                    <CardContent className="py-12 text-center">
+                      <p className="text-muted-foreground">No pending expense approvals</p>
+                    </CardContent>
+                  </Card>
+                )}
+              </TabsContent>
+
+              <TabsContent value="completed" className="space-y-4">
+                {completedExpenses.length > 0 ? (
+                  <div className="grid gap-4">
+                    {completedExpenses.map((expense) => renderExpenseCard(expense, false))}
+                  </div>
+                ) : (
+                  <Card>
+                    <CardContent className="py-12 text-center">
+                      <p className="text-muted-foreground">No completed expense approvals</p>
+                    </CardContent>
+                  </Card>
+                )}
+              </TabsContent>
+            </Tabs>
+          </TabsContent>
+
+          <TabsContent value="advances" className="space-y-4">
+            <Tabs defaultValue="pending" className="w-full">
+              <TabsList>
+                <TabsTrigger value="pending">
+                  Pending ({pendingAdvances.length})
+                </TabsTrigger>
+                <TabsTrigger value="completed">
+                  Completed ({completedAdvances.length})
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="pending" className="space-y-4">
+                {pendingAdvances.length > 0 ? (
+                  <div className="grid gap-4">
+                    {pendingAdvances.map((advance) => renderAdvanceCard(advance, true))}
+                  </div>
+                ) : (
+                  <Card>
+                    <CardContent className="py-12 text-center">
+                      <p className="text-muted-foreground">No pending advance requests</p>
+                    </CardContent>
+                  </Card>
+                )}
+              </TabsContent>
+
+              <TabsContent value="completed" className="space-y-4">
+                {completedAdvances.length > 0 ? (
+                  <div className="grid gap-4">
+                    {completedAdvances.map((advance) => renderAdvanceCard(advance, false))}
+                  </div>
+                ) : (
+                  <Card>
+                    <CardContent className="py-12 text-center">
+                      <p className="text-muted-foreground">No completed advance requests</p>
+                    </CardContent>
+                  </Card>
+                )}
+              </TabsContent>
+            </Tabs>
+          </TabsContent>
+        </Tabs>
+      )}
+    </div>
   );
 };
 

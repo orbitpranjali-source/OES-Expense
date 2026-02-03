@@ -70,10 +70,10 @@ const Users = () => {
       setNewRole('');
     },
     onError: (error: any) => {
-      toast({ 
-        title: 'Error adding role', 
-        description: error.message?.includes('duplicate') ? 'User already has this role' : error.message, 
-        variant: 'destructive' 
+      toast({
+        title: 'Error adding role',
+        description: error.message?.includes('duplicate') ? 'User already has this role' : error.message,
+        variant: 'destructive'
       });
     },
   });
@@ -143,192 +143,188 @@ const Users = () => {
 
   if (primaryRole !== 'owner') {
     return (
-      <DashboardLayout>
-        <div className="text-center">
-          <p className="text-muted-foreground">You don't have permission to access this page.</p>
-        </div>
-      </DashboardLayout>
+      <div className="text-center">
+        <p className="text-muted-foreground">You don't have permission to access this page.</p>
+      </div>
     );
   }
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold">User Management</h2>
-            <p className="text-muted-foreground">View and manage system users and their roles</p>
-          </div>
-          <div className="text-sm text-muted-foreground">
-            <p>Note: New users must sign up through the login page.</p>
-            <p>You can manage their roles after they register.</p>
-          </div>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold">User Management</h2>
+          <p className="text-muted-foreground">View and manage system users and their roles</p>
         </div>
+        <div className="text-sm text-muted-foreground">
+          <p>Note: New users must sign up through the login page.</p>
+          <p>You can manage their roles after they register.</p>
+        </div>
+      </div>
 
-        {isLoading ? (
-          <div className="flex justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
-        ) : users && users.length > 0 ? (
-          <div className="grid gap-4">
-            {users.map((user) => (
-              <Card key={user.id}>
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                        <UsersIcon className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <CardTitle>{user.full_name}</CardTitle>
-                        <CardDescription>{user.email}</CardDescription>
-                      </div>
+      {isLoading ? (
+        <div className="flex justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      ) : users && users.length > 0 ? (
+        <div className="grid gap-4">
+          {users.map((user) => (
+            <Card key={user.id}>
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                      <UsersIcon className="h-5 w-5" />
                     </div>
-                    <div className="flex items-center gap-2">
-                      <div className="flex flex-wrap gap-2">
-                        {user.user_roles?.map((roleObj: any, idx: number) => (
-                          <div key={idx} className="flex items-center gap-1">
-                            <Badge className={getRoleBadgeColor(roleObj.role)}>
-                              {roleObj.role}
-                            </Badge>
-                            {user.user_roles.length > 1 && (
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-5 w-5 hover:bg-destructive/20"
-                                onClick={() => removeRoleMutation.mutate({ userId: user.id, role: roleObj.role })}
-                                disabled={removeRoleMutation.isPending}
-                              >
-                                <Trash2 className="h-3 w-3 text-destructive" />
-                              </Button>
-                            )}
-                          </div>
-                        ))}
-                      </div>
+                    <div>
+                      <CardTitle>{user.full_name}</CardTitle>
+                      <CardDescription>{user.email}</CardDescription>
                     </div>
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center justify-between">
-                    <div className="grid grid-cols-2 gap-4 text-sm flex-1">
-                      {user.department && (
-                        <div>
-                          <p className="text-muted-foreground">Department</p>
-                          <p className="font-medium">{user.department}</p>
-                        </div>
-                      )}
-                      {user.phone && (
-                        <div>
-                          <p className="text-muted-foreground">Phone</p>
-                          <p className="font-medium">{user.phone}</p>
-                        </div>
-                      )}
-                      <div>
-                        <p className="text-muted-foreground">Joined</p>
-                        <p className="font-medium">{formatDateTime(user.created_at)}</p>
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
-                      {getAvailableRolesForUser(user.user_roles).length > 0 && (
-                        <Dialog open={isRoleDialogOpen && selectedUserId === user.id} onOpenChange={(open) => {
-                          setIsRoleDialogOpen(open);
-                          if (!open) {
-                            setSelectedUserId(null);
-                            setNewRole('');
-                          }
-                        }}>
-                          <DialogTrigger asChild>
+                  <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap gap-2">
+                      {user.user_roles?.map((roleObj: any, idx: number) => (
+                        <div key={idx} className="flex items-center gap-1">
+                          <Badge className={getRoleBadgeColor(roleObj.role)}>
+                            {roleObj.role}
+                          </Badge>
+                          {user.user_roles.length > 1 && (
                             <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setSelectedUserId(user.id)}
+                              variant="ghost"
+                              size="icon"
+                              className="h-5 w-5 hover:bg-destructive/20"
+                              onClick={() => removeRoleMutation.mutate({ userId: user.id, role: roleObj.role })}
+                              disabled={removeRoleMutation.isPending}
                             >
-                              <Shield className="mr-2 h-4 w-4" />
-                              Add Role
+                              <Trash2 className="h-3 w-3 text-destructive" />
                             </Button>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>Add Role to {user.full_name}</DialogTitle>
-                              <DialogDescription>
-                                Select a role to assign to this user.
-                              </DialogDescription>
-                            </DialogHeader>
-                            <div className="space-y-4 py-4">
-                              <div className="space-y-2">
-                                <Label htmlFor="role">Role</Label>
-                                <Select value={newRole} onValueChange={setNewRole}>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select a role" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {getAvailableRolesForUser(user.user_roles).map((role) => (
-                                      <SelectItem key={role} value={role}>
-                                        {role.charAt(0).toUpperCase() + role.slice(1)}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                            </div>
-                            <DialogFooter>
-                              <Button
-                                onClick={() => addRoleMutation.mutate({ userId: user.id, role: newRole })}
-                                disabled={!newRole || addRoleMutation.isPending}
-                              >
-                                {addRoleMutation.isPending ? (
-                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                ) : null}
-                                Add Role
-                              </Button>
-                            </DialogFooter>
-                          </DialogContent>
-                        </Dialog>
-                      )}
-                      
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="destructive" size="sm">
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Remove User
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <div className="grid grid-cols-2 gap-4 text-sm flex-1">
+                    {user.department && (
+                      <div>
+                        <p className="text-muted-foreground">Department</p>
+                        <p className="font-medium">{user.department}</p>
+                      </div>
+                    )}
+                    {user.phone && (
+                      <div>
+                        <p className="text-muted-foreground">Phone</p>
+                        <p className="font-medium">{user.phone}</p>
+                      </div>
+                    )}
+                    <div>
+                      <p className="text-muted-foreground">Joined</p>
+                      <p className="font-medium">{formatDateTime(user.created_at)}</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    {getAvailableRolesForUser(user.user_roles).length > 0 && (
+                      <Dialog open={isRoleDialogOpen && selectedUserId === user.id} onOpenChange={(open) => {
+                        setIsRoleDialogOpen(open);
+                        if (!open) {
+                          setSelectedUserId(null);
+                          setNewRole('');
+                        }
+                      }}>
+                        <DialogTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setSelectedUserId(user.id)}
+                          >
+                            <Shield className="mr-2 h-4 w-4" />
+                            Add Role
                           </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Remove User</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Are you sure you want to remove {user.full_name}? This will delete their profile and all associated roles. This action cannot be undone.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => deleteUserMutation.mutate(user.id)}
-                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Add Role to {user.full_name}</DialogTitle>
+                            <DialogDescription>
+                              Select a role to assign to this user.
+                            </DialogDescription>
+                          </DialogHeader>
+                          <div className="space-y-4 py-4">
+                            <div className="space-y-2">
+                              <Label htmlFor="role">Role</Label>
+                              <Select value={newRole} onValueChange={setNewRole}>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select a role" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {getAvailableRolesForUser(user.user_roles).map((role) => (
+                                    <SelectItem key={role} value={role}>
+                                      {role.charAt(0).toUpperCase() + role.slice(1)}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+                          <DialogFooter>
+                            <Button
+                              onClick={() => addRoleMutation.mutate({ userId: user.id, role: newRole })}
+                              disabled={!newRole || addRoleMutation.isPending}
                             >
-                              {deleteUserMutation.isPending ? (
+                              {addRoleMutation.isPending ? (
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                               ) : null}
-                              Remove
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
+                              Add Role
+                            </Button>
+                          </DialogFooter>
+                        </DialogContent>
+                      </Dialog>
+                    )}
+
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="destructive" size="sm">
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Remove User
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Remove User</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to remove {user.full_name}? This will delete their profile and all associated roles. This action cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => deleteUserMutation.mutate(user.id)}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
+                            {deleteUserMutation.isPending ? (
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            ) : null}
+                            Remove
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        ) : (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <p className="text-muted-foreground">No users found</p>
-            </CardContent>
-          </Card>
-        )}
-      </div>
-    </DashboardLayout>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <Card>
+          <CardContent className="py-12 text-center">
+            <p className="text-muted-foreground">No users found</p>
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 };
 

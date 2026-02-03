@@ -2,9 +2,10 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
 import { AuthProvider } from "@/lib/auth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
@@ -27,62 +28,24 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
+
+            {/* Protected Dashboard Routes */}
             <Route
-              path="/dashboard"
               element={
                 <ProtectedRoute>
-                  <Dashboard />
+                  <DashboardLayout />
                 </ProtectedRoute>
               }
-            />
-            <Route
-              path="/expense/new"
-              element={
-                <ProtectedRoute>
-                  <ExpenseForm />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/expense/:id"
-              element={
-                <ProtectedRoute>
-                  <ExpenseForm />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/approvals"
-              element={
-                <ProtectedRoute>
-                  <Approvals />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/payments"
-              element={
-                <ProtectedRoute>
-                  <Payments />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/users"
-              element={
-                <ProtectedRoute>
-                  <Users />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/expenses"
-              element={
-                <ProtectedRoute>
-                  <MyExpenses />
-                </ProtectedRoute>
-              }
-            />
+            >
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/expense/new" element={<ExpenseForm />} />
+              <Route path="/expense/:id" element={<ExpenseForm />} />
+              <Route path="/approvals" element={<Approvals />} />
+              <Route path="/payments" element={<Payments />} />
+              <Route path="/users" element={<Users />} />
+              <Route path="/expenses" element={<MyExpenses />} />
+            </Route>
+
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

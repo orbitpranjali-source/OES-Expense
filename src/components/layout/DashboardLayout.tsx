@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, Outlet } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
 import { useUserRole } from '@/hooks/useUserRole';
 import { Button } from '@/components/ui/button';
@@ -12,20 +12,20 @@ import {
   CreditCard,
   LogOut,
   Bell,
-  FileText
+  FileText,
+  Loader2
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-const orbitLogo = '/orbit-logo.png';
 
 interface DashboardLayoutProps {
-  children: ReactNode;
+  children?: ReactNode;
 }
 
 export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const location = useLocation();
   const { user, signOut } = useAuth();
-  const { primaryRole } = useUserRole();
+  const { primaryRole, loading } = useUserRole();
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ['employee', 'manager', 'owner', 'accounts'] },
@@ -47,6 +47,14 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       .toUpperCase()
       .slice(0, 2);
   };
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -120,7 +128,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
         {/* Page content */}
         <main className="flex-1 overflow-auto p-6">
-          {children}
+          {children || <Outlet />}
         </main>
       </div>
     </div>

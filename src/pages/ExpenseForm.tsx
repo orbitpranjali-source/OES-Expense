@@ -40,7 +40,7 @@ const ExpenseForm = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
-  
+
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
@@ -226,8 +226,8 @@ const ExpenseForm = () => {
 
       toast({
         title: 'Success',
-        description: shouldSubmit 
-          ? 'Expense submitted for approval' 
+        description: shouldSubmit
+          ? 'Expense submitted for approval'
           : 'Expense saved as draft',
       });
 
@@ -253,175 +253,173 @@ const ExpenseForm = () => {
   };
 
   return (
-    <DashboardLayout>
-      <div className="mx-auto max-w-2xl">
-        <Card>
-          <CardHeader>
-            <CardTitle>{id ? 'Edit Expense' : 'New Expense'}</CardTitle>
-            <CardDescription>
-              Fill in the details of your expense and upload the bill receipt
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={(e) => handleSubmit(e, true)} className="space-y-6">
+    <div className="mx-auto max-w-2xl">
+      <Card>
+        <CardHeader>
+          <CardTitle>{id ? 'Edit Expense' : 'New Expense'}</CardTitle>
+          <CardDescription>
+            Fill in the details of your expense and upload the bill receipt
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={(e) => handleSubmit(e, true)} className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="title">Title *</Label>
+              <Input
+                id="title"
+                placeholder="e.g., Team lunch at Restaurant"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="category">Category *</Label>
+              <Select value={category} onValueChange={setCategory} required>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {EXPENSE_CATEGORIES.map((cat) => (
+                    <SelectItem key={cat} value={cat}>
+                      {cat}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="title">Title *</Label>
+                <Label htmlFor="amount">Amount (₹) *</Label>
                 <Input
-                  id="title"
-                  placeholder="e.g., Team lunch at Restaurant"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
+                  id="amount"
+                  type="number"
+                  step="0.01"
+                  placeholder="0.00"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
                   required
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="category">Category *</Label>
-                <Select value={category} onValueChange={setCategory} required>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {EXPENSE_CATEGORIES.map((cat) => (
-                      <SelectItem key={cat} value={cat}>
-                        {cat}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="amount">Amount (₹) *</Label>
-                  <Input
-                    id="amount"
-                    type="number"
-                    step="0.01"
-                    placeholder="0.00"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="date">Expense Date *</Label>
-                  <Input
-                    id="date"
-                    type="date"
-                    value={expenseDate}
-                    onChange={(e) => setExpenseDate(e.target.value)}
-                    max={new Date().toISOString().split('T')[0]}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  placeholder="Add any additional details..."
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  rows={4}
+                <Label htmlFor="date">Expense Date *</Label>
+                <Input
+                  id="date"
+                  type="date"
+                  value={expenseDate}
+                  onChange={(e) => setExpenseDate(e.target.value)}
+                  max={new Date().toISOString().split('T')[0]}
+                  required
                 />
               </div>
+            </div>
 
-              <div className="space-y-2">
-                <Label>Bill Receipt</Label>
-                <div className="border-2 border-dashed rounded-lg p-6 text-center">
-                  <Upload className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-                  <p className="text-sm text-muted-foreground mb-2">
-                    Upload bill receipts (PDF, JPG, PNG)
-                  </p>
-                  <Input
-                    type="file"
-                    onChange={handleFileChange}
-                    multiple
-                    accept=".pdf,.jpg,.jpeg,.png"
-                    className="hidden"
-                    id="file-upload"
-                  />
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => document.getElementById('file-upload')?.click()}
-                  >
-                    Choose Files
-                  </Button>
-                </div>
+            <div className="space-y-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                placeholder="Add any additional details..."
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={4}
+              />
+            </div>
 
-                {existingFiles.length > 0 && (
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium">Existing Files:</p>
-                    {existingFiles.map((file) => (
-                      <div key={file.id} className="flex items-center gap-2 text-sm">
-                        <span className="text-muted-foreground">{file.file_name}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {files.length > 0 && (
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium">New Files:</p>
-                    {files.map((file, index) => (
-                      <div key={index} className="flex items-center justify-between rounded-md border p-2">
-                        <span className="text-sm">{file.name}</span>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeFile(index)}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <div className="flex gap-3">
+            <div className="space-y-2">
+              <Label>Bill Receipt</Label>
+              <div className="border-2 border-dashed rounded-lg p-6 text-center">
+                <Upload className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
+                <p className="text-sm text-muted-foreground mb-2">
+                  Upload bill receipts (PDF, JPG, PNG)
+                </p>
+                <Input
+                  type="file"
+                  onChange={handleFileChange}
+                  multiple
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  className="hidden"
+                  id="file-upload"
+                />
                 <Button
                   type="button"
                   variant="outline"
-                  className="flex-1"
-                  onClick={(e) => handleSubmit(e, false)}
-                  disabled={loading || uploading}
+                  size="sm"
+                  onClick={() => document.getElementById('file-upload')?.click()}
                 >
-                  {loading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Saving...
-                    </>
-                  ) : (
-                    'Save as Draft'
-                  )}
-                </Button>
-                <Button
-                  type="submit"
-                  className="flex-1"
-                  disabled={loading || uploading}
-                >
-                  {loading || uploading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      {uploading ? 'Uploading...' : 'Submitting...'}
-                    </>
-                  ) : (
-                    'Submit for Approval'
-                  )}
+                  Choose Files
                 </Button>
               </div>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
-    </DashboardLayout>
+
+              {existingFiles.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">Existing Files:</p>
+                  {existingFiles.map((file) => (
+                    <div key={file.id} className="flex items-center gap-2 text-sm">
+                      <span className="text-muted-foreground">{file.file_name}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {files.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">New Files:</p>
+                  {files.map((file, index) => (
+                    <div key={index} className="flex items-center justify-between rounded-md border p-2">
+                      <span className="text-sm">{file.name}</span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeFile(index)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1"
+                onClick={(e) => handleSubmit(e, false)}
+                disabled={loading || uploading}
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  'Save as Draft'
+                )}
+              </Button>
+              <Button
+                type="submit"
+                className="flex-1"
+                disabled={loading || uploading}
+              >
+                {loading || uploading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {uploading ? 'Uploading...' : 'Submitting...'}
+                  </>
+                ) : (
+                  'Submit for Approval'
+                )}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
