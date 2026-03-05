@@ -14,10 +14,14 @@ import {
   XCircle,
   DollarSign,
   TrendingUp,
-  FileText
+  FileText,
+  Building2,
+  AlertTriangle,
+  ArrowRight
 } from 'lucide-react';
 import { Loader2 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
+import { Progress } from '@/components/ui/progress';
 
 interface ExpenseStats {
   total: number;
@@ -43,6 +47,8 @@ const Dashboard = () => {
   const [recentExpenses, setRecentExpenses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activityStats, setActivityStats] = useState<{ approvedCount?: number; paidCount?: number }>({});
+  const [siteBudgets, setSiteBudgets] = useState<any[]>([]);
+  const [siteExpenseTotals, setSiteExpenseTotals] = useState<Map<string, number>>(new Map());
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -109,6 +115,33 @@ const Dashboard = () => {
             .select('id')
             .eq('paid_by', user.id);
           setActivityStats({ paidCount: payments?.length || 0 });
+        }
+        // Fetch site budgets for manager/owner/accounts
+        if (['manager', 'owner', 'accounts'].includes(primaryRole)) {
+          const { data: budgetsData } = await supabase
+            .from('site_budgets')
+            .select('*')
+            .order('site_name', { ascending: true });
+
+          setSiteBudgets(budgetsData || []);
+
+          // Fetch expenses grouped by site
+          const { data: siteExpData } = await supabase
+            .from('expenses')
+            .select('id, amount, site_name, status')
+            .not('site_name', 'is', null)
+            .not('status', 'in', '("draft","manager_rejected","owner_rejected")');
+
+          if (siteExpData) {
+            const totals = new Map<string, number>();
+            siteExpData.forEach(exp => {
+              if (exp.site_name) {
+                const current = totals.get(exp.site_name) || 0;
+                totals.set(exp.site_name, current + Number(exp.amount));
+              }
+            });
+            setSiteExpenseTotals(totals);
+          }
         }
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
@@ -322,6 +355,99 @@ const Dashboard = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Site Budget Overview - for manager/owner/accounts */}
+      {['manager', 'owner', 'accounts'].includes(primaryRole) && siteBudgets.length > 0 && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Building2 className="h-5 w-5 text-primary" />
+                Site Budget Overview
+              </CardTitle>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate('/site-budgets')}
+              >
+                View All
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-2">
+              {siteBudgets.slice(0, 4).map((site: any) => {
+                const budget = Number(site.total_budget);
+                const used = siteExpenseTotals.get(site.site_name) || 0;
+                const remaining = budget - used;
+                const percentage = budget > 0 ? (used / budget) * 100 : 0;
+
+                const getColor = (pct: number) => {
+                  if (pct >= 100) return { text: 'text-red-600', bg: 'bg-red-500', bgLight: 'bg-red-100 dark:bg-red-950/30' };
+                  if (pct >= 80) return { text: 'text-amber-600', bg: 'bg-amber-500', bgLight: 'bg-amber-100 dark:bg-amber-950/30' };
+                  if (pct >= 60) return { text: 'text-yellow-600', bg: 'bg-yellow-500', bgLight: 'bg-yellow-100 dark:bg-yellow-950/30' };
+                  return { text: 'text-emerald-600', bg: 'bg-emerald-500', bgLight: 'bg-emerald-100 dark:bg-emerald-950/30' };
+                };
+
+                const colors = getColor(percentage);
+
+                return (
+                  <div
+                    key={site.id}
+                    className={`rounded-lg border p-4 space-y-3 cursor-pointer hover:shadow-md transition-all ${percentage >= 100 ? 'border-red-200 dark:border-red-800 bg-red-50/30 dark:bg-red-950/5' :
+                        percentage >= 80 ? 'border-amber-200 dark:border-amber-800 bg-amber-50/30 dark:bg-amber-950/5' :
+                          'bg-card'
+                      }`}
+                    onClick={() => navigate('/site-budgets')}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-2">
+                        <Building2 className="h-4 w-4 text-primary" />
+                        <span className="font-medium text-sm">{site.site_name}</span>
+                      </div>
+                      {percentage >= 100 && (
+                        <span className="flex items-center gap-1 text-xs text-red-600 font-medium">
+                          <AlertTriangle className="h-3 w-3" /> Over
+                        </span>
+                      )}
+                      {percentage >= 80 && percentage < 100 && (
+                        <span className="flex items-center gap-1 text-xs text-amber-600 font-medium">
+                          <AlertTriangle className="h-3 w-3" /> Warning
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>{formatCurrency(used)} used</span>
+                      <span className={colors.text}>{percentage.toFixed(1)}%</span>
+                    </div>
+
+                    <div className={`relative h-2 rounded-full overflow-hidden ${colors.bgLight}`}>
+                      <div
+                        className={`absolute inset-y-0 left-0 rounded-full transition-all duration-700 ${colors.bg}`}
+                        style={{ width: `${Math.min(percentage, 100)}%` }}
+                      />
+                    </div>
+
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">Budget: {formatCurrency(budget)}</span>
+                      <span className={remaining >= 0 ? 'text-emerald-600 font-medium' : 'text-red-600 font-medium'}>
+                        {remaining >= 0 ? `${formatCurrency(remaining)} left` : `${formatCurrency(Math.abs(remaining))} over`}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            {siteBudgets.length > 4 && (
+              <p className="text-xs text-muted-foreground text-center mt-3">
+                +{siteBudgets.length - 4} more sites. Click "View All" to see all site budgets.
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Quick Actions */}
       <Card>

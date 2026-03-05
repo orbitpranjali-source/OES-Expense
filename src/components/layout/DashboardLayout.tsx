@@ -13,7 +13,8 @@ import {
   LogOut,
   Bell,
   FileText,
-  Loader2
+  Loader2,
+  Building2
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -31,6 +32,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ['employee', 'manager', 'owner', 'accounts'] },
     { name: 'My Expenses', href: '/expenses', icon: FileText, roles: ['employee', 'manager', 'owner', 'accounts'] },
     { name: 'Add Expense', href: '/expense/new', icon: Plus, roles: ['employee', 'manager', 'owner', 'accounts'] },
+    { name: 'Site Budgets', href: '/site-budgets', icon: Building2, roles: ['manager', 'owner', 'accounts'] },
     { name: 'Approvals', href: '/approvals', icon: CheckCircle, roles: ['manager', 'owner'] },
     { name: 'Payments', href: '/payments', icon: CreditCard, roles: ['accounts'] },
     { name: 'Users', href: '/users', icon: Users, roles: ['owner'] },

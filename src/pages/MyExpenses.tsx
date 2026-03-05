@@ -304,6 +304,7 @@ const MyExpenses = () => {
                         <CardTitle className="text-lg">{expense.title}</CardTitle>
                         <CardDescription>
                           {expense.category} • {formatDate(expense.expense_date)}
+                          {expense.site_name && <> • <span className="font-medium">{expense.site_name}</span></>}
                         </CardDescription>
                       </div>
                       {getStatusBadge(expense.status)}

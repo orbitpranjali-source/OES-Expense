@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,7 +10,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Upload, X } from 'lucide-react';
+import { Loader2, Upload, X, Building2, AlertTriangle } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import { z } from 'zod';
 
 const expenseSchema = z.object({
@@ -48,6 +49,52 @@ const ExpenseForm = () => {
   const [expenseDate, setExpenseDate] = useState(new Date().toISOString().split('T')[0]);
   const [files, setFiles] = useState<File[]>([]);
   const [existingFiles, setExistingFiles] = useState<any[]>([]);
+  const [selectedSite, setSelectedSite] = useState('');
+
+  // Fetch site budgets for the site selector
+  const { data: siteBudgets } = useQuery({
+    queryKey: ['site-budgets-list'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('site_budgets')
+        .select('id, site_name, total_budget')
+        .order('site_name', { ascending: true });
+
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  // Fetch expenses for the selected site to show budget info
+  const { data: siteExpenses } = useQuery({
+    queryKey: ['site-expenses-budget', selectedSite],
+    queryFn: async () => {
+      if (!selectedSite) return [];
+      const { data, error } = await supabase
+        .from('expenses')
+        .select('id, amount, status')
+        .eq('site_name', selectedSite)
+        .not('status', 'in', '("draft","manager_rejected","owner_rejected")');
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!selectedSite,
+  });
+
+  // Calculate site budget usage
+  const siteBudgetInfo = useMemo(() => {
+    if (!selectedSite || !siteBudgets) return null;
+    const site = siteBudgets.find(s => s.site_name === selectedSite);
+    if (!site) return null;
+
+    const totalUsed = siteExpenses?.reduce((sum, e) => sum + Number(e.amount), 0) || 0;
+    const budget = Number(site.total_budget);
+    const remaining = budget - totalUsed;
+    const percentage = budget > 0 ? (totalUsed / budget) * 100 : 0;
+
+    return { budget, totalUsed, remaining, percentage };
+  }, [selectedSite, siteBudgets, siteExpenses]);
 
   useEffect(() => {
     if (id) {
@@ -92,6 +139,7 @@ const ExpenseForm = () => {
       setAmount(expense.amount.toString());
       setCategory(expense.category);
       setExpenseDate(expense.expense_date);
+      setSelectedSite(expense.site_name || '');
 
       // Fetch files
       const { data: filesData } = await supabase
@@ -185,6 +233,7 @@ const ExpenseForm = () => {
             amount: validatedData.amount,
             category: validatedData.category,
             expense_date: validatedData.expense_date,
+            site_name: selectedSite || null,
             status: (shouldSubmit ? 'submitted' : 'draft') as 'draft' | 'submitted',
           })
           .eq('id', id);
@@ -202,6 +251,7 @@ const ExpenseForm = () => {
             category: validatedData.category,
             expense_date: validatedData.expense_date,
             user_id: user?.id!,
+            site_name: selectedSite || null,
             status: (shouldSubmit ? 'submitted' : 'draft') as 'draft' | 'submitted',
           }])
           .select()
@@ -288,6 +338,75 @@ const ExpenseForm = () => {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+
+            {/* Site Selection */}
+            <div className="space-y-2">
+              <Label htmlFor="site">Site / Project</Label>
+              <Select value={selectedSite} onValueChange={setSelectedSite}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a site (optional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  {siteBudgets?.map((site) => (
+                    <SelectItem key={site.id} value={site.site_name}>
+                      <div className="flex items-center gap-2">
+                        <Building2 className="h-3 w-3" />
+                        {site.site_name}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {selectedSite && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs text-muted-foreground h-auto p-1"
+                  onClick={() => setSelectedSite('')}
+                >
+                  Clear site selection
+                </Button>
+              )}
+
+              {/* Site Budget Info */}
+              {siteBudgetInfo && (
+                <div className={`rounded-lg p-3 text-sm space-y-2 ${siteBudgetInfo.percentage >= 100
+                    ? 'bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800'
+                    : siteBudgetInfo.percentage >= 80
+                      ? 'bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800'
+                      : 'bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800'
+                  }`}>
+                  <div className="flex items-center gap-2">
+                    {siteBudgetInfo.percentage >= 80 && (
+                      <AlertTriangle className={`h-4 w-4 ${siteBudgetInfo.percentage >= 100 ? 'text-red-500' : 'text-amber-500'
+                        }`} />
+                    )}
+                    <span className="font-medium">
+                      Site Budget: {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 0 }).format(siteBudgetInfo.budget)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span>Used: {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 0 }).format(siteBudgetInfo.totalUsed)}</span>
+                    <span className={siteBudgetInfo.remaining >= 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-red-700 dark:text-red-400'}>
+                      Remaining: {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 0 }).format(Math.abs(siteBudgetInfo.remaining))}
+                      {siteBudgetInfo.remaining < 0 && ' (over)'}
+                    </span>
+                  </div>
+                  <div className="relative h-1.5 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700">
+                    <div
+                      className={`absolute inset-y-0 left-0 rounded-full transition-all duration-500 ${siteBudgetInfo.percentage >= 100 ? 'bg-red-500' :
+                          siteBudgetInfo.percentage >= 80 ? 'bg-amber-500' : 'bg-emerald-500'
+                        }`}
+                      style={{ width: `${Math.min(siteBudgetInfo.percentage, 100)}%` }}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {siteBudgetInfo.percentage.toFixed(1)}% budget utilized
+                  </p>
+                </div>
+              )}
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">

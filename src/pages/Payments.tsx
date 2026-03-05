@@ -154,6 +154,12 @@ const Payments = () => {
                         <p className="text-muted-foreground">Category</p>
                         <p className="font-medium">{expense.category}</p>
                       </div>
+                      {expense.site_name && (
+                        <div>
+                          <p className="text-muted-foreground">Site / Project</p>
+                          <p className="font-medium">{expense.site_name}</p>
+                        </div>
+                      )}
                     </div>
 
                     {selectedExpense === expense.id ? (

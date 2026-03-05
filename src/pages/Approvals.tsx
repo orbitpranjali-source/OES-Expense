@@ -282,6 +282,12 @@ const Approvals = () => {
             <p className="text-muted-foreground">Expense Date</p>
             <p className="font-medium">{formatDateTime(expense.expense_date)}</p>
           </div>
+          {expense.site_name && (
+            <div>
+              <p className="text-muted-foreground">Site / Project</p>
+              <p className="font-medium">{expense.site_name}</p>
+            </div>
+          )}
         </div>
 
         {expense.description && (
